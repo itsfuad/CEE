@@ -59,4 +59,13 @@ typedef struct {
     #endif
 } ProcessHandle;
 
+// Function prototypes
+ProcessHandle* open_process(process_id_t pid);
+void close_process(ProcessHandle* handle);
+ProcessMap* read_process_maps(process_id_t pid);
+size_t read_process_memory(ProcessHandle* handle, void* address, void* buffer, size_t size);
+size_t write_process_memory(ProcessHandle* handle, void* address, void* buffer, size_t size);
+void search_pattern(ProcessHandle* handle, MemoryRegion* region, const char* pattern, size_t pattern_len);
+void print_memory_map(ProcessMap* map);
+
 #endif // MEMTOOL_H

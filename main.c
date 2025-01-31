@@ -13,7 +13,7 @@ ProcessHandle* open_process(process_id_t pid) {
 
     #ifdef PLATFORM_WINDOWS
         handle->handle = OpenProcess(
-            PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
+            PROCESS_QUERY_INFORMATION | PROCESS_VM_READ | PROCESS_VM_WRITE,
             FALSE,
             pid
         );
@@ -25,7 +25,7 @@ ProcessHandle* open_process(process_id_t pid) {
         handle->pid = pid;
         char path[64];
         snprintf(path, sizeof(path), "/proc/%d/mem", pid);
-        handle->mem_fd = open(path, O_RDONLY);
+        handle->mem_fd = open(path, O_RDWR);
         if (handle->mem_fd == -1) {
             free(handle);
             return NULL;
@@ -135,6 +135,21 @@ size_t read_process_memory(ProcessHandle* handle, void* address,
     #endif
 }
 
+// Write process memory
+size_t write_process_memory(ProcessHandle* handle, void* address, 
+                           void* buffer, size_t size) {
+    #ifdef PLATFORM_WINDOWS
+        SIZE_T bytes_written = 0;
+        if (WriteProcessMemory(handle->handle, address, buffer, size, &bytes_written)) {
+            return bytes_written;
+        }
+        return 0;
+    #else
+        ssize_t bytes_written = pwrite(handle->mem_fd, buffer, size, (off_t)address);
+        return bytes_written > 0 ? bytes_written : 0;
+    #endif
+}
+
 // Search for pattern in memory region
 void search_pattern(ProcessHandle* handle, MemoryRegion* region,
                    const char* pattern, size_t pattern_len) {
@@ -204,7 +219,7 @@ void print_memory_map(ProcessMap* map) {
 int main(int argc, char* argv[]) {
     if (argc < 3) {
         printf("Usage: %s <command> <pid> [options]\n", argv[0]);
-        printf("Commands: map, search\n");
+        printf("Commands: map, search, write\n");
         return 1;
     }
 
@@ -244,6 +259,24 @@ int main(int argc, char* argv[]) {
                 }
             }
             free(map);
+        }
+    }
+    else if (strcmp(argv[1], "write") == 0) {
+        if (argc < 5) {
+            printf("Usage: %s write <pid> <address> <data>\n", argv[0]);
+            close_process(handle);
+            return 1;
+        }
+
+        void* address = (void*)strtoul(argv[3], NULL, 0);
+        char* data = argv[4];
+        size_t data_len = strlen(data);
+
+        size_t bytes_written = write_process_memory(handle, address, data, data_len);
+        if (bytes_written == data_len) {
+            printf("Successfully wrote %zu bytes to address %p\n", bytes_written, address);
+        } else {
+            printf("Failed to write to address %p\n", address);
         }
     }
 
