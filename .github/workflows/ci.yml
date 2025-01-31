@@ -1,0 +1,30 @@
+name: Build and Test
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # Use a Linux GitHub Actions runner
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+
+      - name: Build project
+        run: make  # Ensure your Makefile is correctly formatted
+
+      - name: "Debug: Print running processes"
+        run: ps aux  # This will list all running processes
+
+      - name: "Debug: Check memory access permissions"
+        run: cat /proc/sys/kernel/yama/ptrace_scope
+
+      - name: Allow process memory access (if needed)
+        run: sudo sysctl -w kernel.yama.ptrace_scope=0
+
+      - name: Run tests
+        run: ./memtool_test $$
