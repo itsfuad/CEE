@@ -2,8 +2,6 @@
 #include <stdio.h>
 #include "memtool.h"
 
-#include "memtool.h"
-
 process_id_t get_process_id() {
     #ifdef PLATFORM_WINDOWS
         return GetCurrentProcessId();
