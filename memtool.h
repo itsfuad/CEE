@@ -1,6 +1,5 @@
 // memtool.h
-#ifndef MEMTOOL_H
-#define MEMTOOL_H
+#pragma once
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,5 +66,3 @@ size_t read_process_memory(ProcessHandle* handle, void* address, void* buffer, s
 size_t write_process_memory(ProcessHandle* handle, void* address, void* buffer, size_t size);
 void search_pattern(ProcessHandle* handle, const MemoryRegion* region, const char* pattern, size_t pattern_len);
 void print_memory_map(const ProcessMap* map);
-
-#endif // MEMTOOL_H
