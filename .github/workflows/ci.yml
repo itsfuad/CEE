@@ -3,18 +3,37 @@ name: C Build and Test
 on: [push]
 
 jobs:
-  build:
-
+  build-linux:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Install dependencies
-      run: sudo apt-get install -y gcc-mingw-w64
+      run: sudo apt-get install -y gcc
 
-    - name: Build and Test
+    - name: Build and Test (Linux)
       run: |
         make
         ./test_cee
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        choco install mingw --version=8.1.0
+
+    - name: Add MinGW to PATH
+      run: echo "C:\ProgramData\chocolatey\bin" >> $GITHUB_PATH
+
+    - name: Build (Windows)
+      run: |
+        make
+
+    - name: Run Tests (Windows)
+      run: |
+        .\test_cee.exe
