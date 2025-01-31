@@ -1,22 +1,37 @@
-# compile cee
-CC = gcc
-# -Wall: show all warnings
-# -Wextra: show extra warnings
-# -O2: optimize code
-CFLAGS = -Wall -Wextra -O2
-# Target file name
-TARGET = cee
-# Source files
-SOURCES = main.c memtool.c
-# Header files
-HEADERS = memtool.h
-# libs
-LIBS = -lpsapi
+# Determine platform
+ifeq ($(OS),Windows_NT)
+    PLATFORM = windows
+    CC = x86_64-w64-mingw32-gcc
+    CFLAGS = -Wall -Wextra -O2
+    LDFLAGS = -lpsapi
+    LIBS = -lpsapi
+    SOURCES = main.c memtool.c
+    TEST_SOURCES = test_main.c
+    OBJECTS = $(SOURCES:.c=.o)
+    TEST_OBJECTS = $(TEST_SOURCES:.c=.o)
+    EXEC = cee.exe
+    TEST_EXEC = test_cee.exe
+else
+    PLATFORM = linux
+    CC = gcc
+    CFLAGS = -Wall -Wextra -O2
+    LDFLAGS =
+    LIBS =
+    SOURCES = main.c memtool.c
+    TEST_SOURCES = test_main.c
+    OBJECTS = $(SOURCES:.c=.o)
+    TEST_OBJECTS = $(TEST_SOURCES:.c=.o)
+    EXEC = cee
+    TEST_EXEC = test_cee
+endif
 
-# Makefile rules. all means that the target is the default target
-all: $(TARGET)
-$(TARGET): $(SOURCES) $(HEADERS)
-	$(CC) $(CFLAGS) -o $(TARGET) $(SOURCES) $(LIBS)
+all: $(EXEC) $(TEST_EXEC)
+
+$(EXEC): $(OBJECTS)
+    $(CC) $(OBJECTS) -o $(EXEC) $(LIBS)
+
+$(TEST_EXEC): $(TEST_OBJECTS) $(OBJECTS)
+    $(CC) $(TEST_OBJECTS) $(OBJECTS) -o $(TEST_EXEC) $(LIBS)
 
 clean:
-	rm -f $(TARGET)  
+    rm -f $(OBJECTS) $(EXEC) $(TEST_OBJECTS) $(TEST_EXEC)
