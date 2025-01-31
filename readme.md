@@ -27,7 +27,7 @@ Search for the pattern "example" in the memory of process with PID 1234:
 ```
 
 Write data to the memory of process with PID 1234 at address 0x7ffdf000:
-
+But be careful, writing to memory can cause the process to crash or behave unexpectedly.
 ```sh
 ./cee write 1234 0x7ffdf000 "data"
 ```
