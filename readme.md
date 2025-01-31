@@ -37,3 +37,13 @@ To build the project, you need to have gcc installed. Use the provided Makefile:
 ```sh
 make
 ```
+
+## License
+See the [LICENSE](LICENSE) file for license rights and limitations (MIT).
+```
+
+## Attribution
+Cover image from [GeeksforGeeks](https://www.geeksforgeeks.org/memory-inspector-tool-in-microsoft-edge-browser/)
+
+## Contributing
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. Make sure your code passes the workflow checks.
