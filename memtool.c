@@ -103,7 +103,7 @@ ProcessMap* read_process_maps(process_id_t pid) {
             // Parse maps line
             unsigned long start, end;
             char perms[5], pathname[MAX_PATH_LEN];
-            if (sscanf(line, "%lx-%lx %4s %*s %*s %*s %s",
+            if (sscanf(line, "%lx-%lx %4s %*s %*s %*s %255s",
                       &start, &end, perms, pathname) >= 3) {
                 region->start = start;
                 region->end = end;
@@ -151,7 +151,7 @@ size_t write_process_memory(ProcessHandle* handle, void* address,
 }
 
 // Search for pattern in memory region
-void search_pattern(ProcessHandle* handle, MemoryRegion* region,
+void search_pattern(ProcessHandle* handle, const MemoryRegion* region,
                    const char* pattern, size_t pattern_len) {
     char* buffer = malloc(BUFFER_SIZE);
     if (!buffer) return;
@@ -181,7 +181,7 @@ void search_pattern(ProcessHandle* handle, MemoryRegion* region,
                             (void*)((char*)region->BaseAddress + offset + i));
                     #else
                         printf("Pattern found at: 0x%lx\n",
-                            region->start + offset + i);
+                            (unsigned long)(region->start + offset + i));
                     #endif
                 }
             }
@@ -192,7 +192,7 @@ void search_pattern(ProcessHandle* handle, MemoryRegion* region,
     free(buffer);
 }
 
-void print_memory_map(ProcessMap* map) {
+void print_memory_map(const ProcessMap* map) {
     printf("Memory regions:\n");
     for (int i = 0; i < map->count; i++) {
         #ifdef PLATFORM_WINDOWS
