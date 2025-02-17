@@ -7,11 +7,22 @@
 #endif
 
 // Platform-specific process open
+/**
+ * @brief Opens a process given its process ID.
+ *
+ * This function attempts to open a process associated with the specified process ID.
+ * It returns a pointer to a ProcessHandle structure if the process is successfully opened;
+ * otherwise, it returns NULL indicating failure.
+ *
+ * @param pid The unique identifier (process_id_t) of the target process.
+ *
+ * @return Pointer to the process handle on success, or NULL on failure.
+ */
 ProcessHandle* open_process(process_id_t pid) {
     ProcessHandle* handle = malloc(sizeof(ProcessHandle));
     if (!handle) return NULL;
 
-    #ifdef PLATFORM_WINDOWS
+    #ifdef PLATFORM_WINDOWS // Windows-specific process open
         handle->handle = OpenProcess(
             PROCESS_QUERY_INFORMATION | PROCESS_VM_READ | PROCESS_VM_WRITE,
             FALSE,
@@ -21,7 +32,7 @@ ProcessHandle* open_process(process_id_t pid) {
             free(handle);
             return NULL;
         }
-    #else
+    #else // Linux-specific process open
         handle->pid = pid;
         char path[64];
         snprintf(path, sizeof(path), "/proc/%d/mem", pid);
@@ -36,6 +47,14 @@ ProcessHandle* open_process(process_id_t pid) {
 }
 
 // Platform-specific process close
+/**
+ * @brief Closes the process associated with the provided process handle.
+ *
+ * This function releases any resources tied to the process and performs
+ * necessary cleanup. It should be called when the process is no longer needed.
+ *
+ * @param handle Pointer to a ProcessHandle structure representing the process to be closed.
+ */
 void close_process(ProcessHandle* handle) {
     if (!handle) return;
 
@@ -49,12 +68,25 @@ void close_process(ProcessHandle* handle) {
 }
 
 // Read process memory maps
+/**
+ * @brief Reads the memory maps for the specified process.
+ *
+ * This function retrieves the memory layout information for a process
+ * identified by the given process id. It returns a pointer to a ProcessMap
+ * structure containing the memory map details.
+ *
+ * @param pid The unique identifier of the process whose memory maps are to be read.
+ * @return Pointer to a ProcessMap structure containing the process memory maps,
+ *         or NULL if the operation fails.
+ */
 ProcessMap* read_process_maps(process_id_t pid) {
+    // Allocate memory for the process map
     ProcessMap* map = malloc(sizeof(ProcessMap));
     if (!map) return NULL;
     map->count = 0;
 
     #ifdef PLATFORM_WINDOWS
+        // Open the target process
         HANDLE hProcess = OpenProcess(
             PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
             FALSE,
@@ -68,6 +100,7 @@ ProcessMap* read_process_maps(process_id_t pid) {
         MEMORY_BASIC_INFORMATION mbi;
         PVOID address = 0;
 
+        // Enumerate memory regions
         while (VirtualQueryEx(hProcess, address, &mbi, sizeof(mbi)) == sizeof(mbi)) {
             if (map->count >= MAX_REGIONS) break;
 
@@ -151,6 +184,18 @@ size_t write_process_memory(ProcessHandle* handle, void* address,
 }
 
 // Search for pattern in memory region
+/**
+ * @brief Searches for a specific memory pattern within a given memory region.
+ *
+ * This function performs a scan of the memory region specified by @c region, using the
+ * process handle provided by @c handle to access the target process's memory. The search
+ * logic, which is implemented within this function, identifies occurrences of a particular
+ * pattern based on predetermined criteria.
+ *
+ * @param handle A pointer to the process's handle, used for accessing and manipulating
+ *               the process's memory.
+ * @param region A pointer to a MemoryRegion structure that describes the memory area to be scanned.
+ */
 void search_pattern(ProcessHandle* handle, const MemoryRegion* region,
                    const char* pattern, size_t pattern_len) {
     char* buffer = malloc(BUFFER_SIZE);
@@ -192,6 +237,23 @@ void search_pattern(ProcessHandle* handle, const MemoryRegion* region,
     free(buffer);
 }
 
+/**
+ * print_memory_map - Prints the memory layout of a process.
+ *
+ * This function takes a pointer to a ProcessMap structure, which contains the memory
+ * mapping information for a process, and outputs details that help visualize the
+ * process's memory segments. The details typically include segment starting addresses,
+ * sizes, and possibly permissions or other attributes.
+ *
+ * Parameters:
+ *   @map: A constant pointer to a ProcessMap structure representing the process's memory map.
+ *
+ * Returns:
+ *   void.
+ *
+ * Note:
+ *   Ensure that the provided ProcessMap pointer is not NULL before invoking this function.
+ */
 void print_memory_map(const ProcessMap* map) {
     printf("Memory regions:\n");
     for (int i = 0; i < map->count; i++) {

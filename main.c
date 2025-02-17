@@ -1,5 +1,18 @@
 #include "memtool.h"
 
+
+/**
+ * @file main.c
+ * @brief Contains the main function which serves as the program's entry point.
+ *
+ * The main function accepts command-line arguments and returns an integer 
+ * status code to indicate the success or failure of program execution.
+ *
+ * @param argc The number of command-line arguments.
+ * @param argv Array of command-line arguments, represented as strings.
+ *
+ * @return int Returns 0 if the program executes successfully, non-zero otherwise.
+ */
 int main(int argc, char* argv[]) {
     if (argc < 3) {
         printf("Usage: %s <command> <pid> [options]\n", argv[0]);
@@ -7,6 +20,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // Get the process ID from the command-line arguments
     process_id_t pid = atoi(argv[2]);
     ProcessHandle* handle = open_process(pid);
     if (!handle) {
