@@ -20,7 +20,10 @@
  */
 ProcessHandle* open_process(process_id_t pid) {
     ProcessHandle* handle = malloc(sizeof(ProcessHandle));
-    if (!handle) return NULL;
+    if (!handle) {
+        perror("Failed to allocate memory for ProcessHandle");
+        return NULL;
+    }
 
     #ifdef PLATFORM_WINDOWS // Windows-specific process open
         handle->handle = OpenProcess(
@@ -29,6 +32,7 @@ ProcessHandle* open_process(process_id_t pid) {
             pid
         );
         if (handle->handle == NULL) {
+            perror("Failed to open process");
             free(handle);
             return NULL;
         }
@@ -38,6 +42,7 @@ ProcessHandle* open_process(process_id_t pid) {
         snprintf(path, sizeof(path), "/proc/%d/mem", pid);
         handle->mem_fd = open(path, O_RDWR);
         if (handle->mem_fd == -1) {
+            perror("Failed to open process memory file");
             free(handle);
             return NULL;
         }
@@ -82,7 +87,10 @@ void close_process(ProcessHandle* handle) {
 ProcessMap* read_process_maps(process_id_t pid) {
     // Allocate memory for the process map
     ProcessMap* map = malloc(sizeof(ProcessMap));
-    if (!map) return NULL;
+    if (!map) {
+        perror("Failed to allocate memory for ProcessMap");
+        return NULL;
+    }
     map->count = 0;
 
     #ifdef PLATFORM_WINDOWS
@@ -93,6 +101,7 @@ ProcessMap* read_process_maps(process_id_t pid) {
             pid
         );
         if (hProcess == NULL) {
+            perror("Failed to open process");
             free(map);
             return NULL;
         }
@@ -125,6 +134,7 @@ ProcessMap* read_process_maps(process_id_t pid) {
         snprintf(path, sizeof(path), "/proc/%d/maps", pid);
         FILE* maps = fopen(path, "r");
         if (!maps) {
+            perror("Failed to open process maps file");
             free(map);
             return NULL;
         }

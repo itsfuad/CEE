@@ -20,7 +20,15 @@ jobs:
     - name: Build and Test (Linux)
       run: |
         make
+        if [ $? -ne 0 ]; then
+          echo "Build failed"
+          exit 1
+        fi
         ./test_cee
+        if [ $? -ne 0 ]; then
+          echo "Tests failed"
+          exit 1
+        fi
 
   build-windows:
     runs-on: windows-latest
@@ -38,7 +46,15 @@ jobs:
     - name: Build (Windows)
       run: |
         make
+        if ($LASTEXITCODE -ne 0) {
+          Write-Error "Build failed"
+          exit 1
+        }
 
     - name: Run Tests (Windows)
       run: |
         .\test_cee.exe
+        if ($LASTEXITCODE -ne 0) {
+          Write-Error "Tests failed"
+          exit 1
+        }
